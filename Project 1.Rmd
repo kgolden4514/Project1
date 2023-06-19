@@ -9,22 +9,73 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ## Required packages
-```{r message=FALSE}
+```{r message=FALSE, include=FALSE}
 library(httr)
 library(jsonlite)
 library(tidyverse)
+library(TAF)
 API_KEY <- Sys.setenv("API_KEY" =
                         "_aL5f5EmEje0vL6kYr1xOPtgR8e9rGwT")
 ```
 
 ##Access API
 
-```{r, ticker}
-#Ticker data that can be filtered.
-get_info <- function(query = "all") {
-  url <- "https://api.polygon.io/v3/reference/tickers"
+```{r include=FALSE}
+url <- "https://api.polygon.io/v3/reference/tickers?market=stocks&limit=1000"
+
+stocks_df <- list(apiKey =
+                       Sys.getenv("API_KEY"))
   
-  query_list <- list(active = "true", apiKey =
+  stocks_df <- GET(url, query = stocks_df)
+  stocks_df <- fromJSON(rawToChar(stocks_df$content))
+  stocks_df <- as.data.frame(stocks_df$results)
+  stocks_df <- stocks_df[-c(7, 9:12)]
+  stocks_df <-as.data.frame(sapply(stocks_df, toupper))
+  stocks_df <- stocks_df %>% 
+        rename(Ticker = ticker,
+               Name = name,
+               Market = market,
+               Locale = locale,
+               Primary_Exchange = primary_exchange,
+               Type = type,
+               Currency_Name = currency_name)
+
+url <- "https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/2023-01-09"
+  
+  OHLC_df <- list(adjusted = "true", apiKey =
+                       Sys.getenv("API_KEY"))
+  
+  OHLC_df <- GET(url, query = OHLC_df)
+  OHLC_df <- fromJSON(rawToChar(OHLC_df$content))
+  OHLC_df <- as.data.frame(OHLC_df$results)
+  OHLC_df <- OHLC_df[-c(8)]
+  OHLC_df$v = round(OHLC_df$v, 2)
+  OHLC_df$vw = round(OHLC_df$vw, 2)
+  OHLC_df$o = round(OHLC_df$o, 2)
+  OHLC_df$c = round(OHLC_df$c, 2)
+  OHLC_df$h = round(OHLC_df$h, 2)
+  OHLC_df$l = round(OHLC_df$l, 2)
+  OHLC_df$n = round(OHLC_df$n, 2)
+  OHLC_df <- OHLC_df %>% 
+        rename(Ticker = T,
+               Trading_Volume = v,
+               Volume_Weighted_AvgPrice = vw,
+               Open_Price_01.09.2023 = o,
+               Close_Price_01.09.2023 = c,
+               Highest_Price_01.09.2023 = h,
+               Lowest_Price_01.09.2023 = l,
+               Num_Transactions_01.09.2023 = n)
+
+```
+
+
+```{r, ticker}
+#Ticker data from stocks tickers A through BANF that 
+#can be filtered.
+get_stocks <- function(query = "all") {
+  url <- "https://api.polygon.io/v3/reference/tickers?market=stocks&limit=1000"
+  
+  query_list <- list(apiKey =
                        Sys.getenv("API_KEY"))
   
   if (query != "all") {
@@ -39,26 +90,32 @@ get_info <- function(query = "all") {
     
     if (nrow(results) > 0) {
       results <-as.data.frame(sapply(results, toupper))
-      results <- results[-c(9:12)]
-      results <- results %>%
-        filter(ticker == toupper(query) | 
-                 name == toupper(query) |
-                 market == toupper(query) |
-                 locale == toupper(query) |
-                 primary_exchange == toupper(query) |
-                 type == toupper(query) |
-                 active == toupper(query) |
-                 currency_name == toupper(query))
-                 
+      results <- results[-c(7, 9:12)]
+      stocks_df <- results %>% 
+        rename(Ticker = ticker,
+               Name = name,
+               Market = market,
+               Locale = locale,
+               Primary_Exchange = primary_exchange,
+               Type = type,
+               Currency_Name = currency_name)
+      results <- stocks_df %>%
+        filter(Ticker == toupper(query) | 
+                 Name == toupper(query) |
+                 Market == toupper(query) |
+                 Primary_Exchange == toupper(query) |
+                 Type == toupper(query) |
+                 Currency_Name == toupper(query))
     }
-    
     return(results)
+    
   } 
   else {
     stop("Error retrieving data from the API.")
   }
 }
 ```
+
 
 ```{r, OCLC_1.9.2023}
 #Get the open, high, low, and close (OHLC) for the entire stocks/equities markets for January 9, 2023.
@@ -79,9 +136,8 @@ get_OHLC <- function(query = "all") {
     results <- as.data.frame(parsed$results)
     
     if (nrow(results) > 0) {
-      results <-as.data.frame(sapply(results, toupper))
       results <- results[-c(8)]
-      results <- results %>% 
+      OHLC_df <- results %>% 
         rename(Ticker = T,
                Trading_Volume = v,
                Volume_Weighted_AvgPrice = vw,
@@ -90,7 +146,7 @@ get_OHLC <- function(query = "all") {
                Highest_Price_01.09.2023 = h,
                Lowest_Price_01.09.2023 = l,
                Num_Transactions_01.09.2023 = n)
-      results <- results %>%
+      results <- OHLC_df %>%
         filter(Ticker == toupper(query))
     }
     
@@ -102,8 +158,31 @@ get_OHLC <- function(query = "all") {
 }
 ```
 
+```{r, Create_variable_percent_change}
+OHLC_df <- mutate(OHLC_df, 
+                      Percent_Change_Open_Close = ((Close_Price_01.09.2023 -Open_Price_01.09.2023)/Open_Price_01.09.2023)*100)
+OHLC_df$Percent_Change_Open_Close = round(OHLC_df$Percent_Change_Open_Close, 2)
+OHLC_df <- mutate(OHLC_df, Diff_High_to_Low = (Highest_Price_01.09.2023 - Lowest_Price_01.09.2023))
+OHLC_df <- OHLC_df[, c(1:5, 9, 6:7, 10, 8)]
+```
+
+```{r}
+tab <- table(stocks_df$Primary_Exchange, stocks_df$Type)
+Table_Nasdaq_Types <- tab[4, ]
+Table_New_York_Stock_Exchange <- tab[5, ]
+Exchange_v_Types <- addmargins(tab[, 1:12])
+```
+
+```{r}
+g <- ggplot(data = stocks_df, aes(x = Primary_Exchange))
+g + geom_bar() + 
+  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  facet_wrap(~Type)
+```
+
+
 ```{r, check_api}
-my_data <- GET ('https://api.polygon.io/v3/reference/tickers?active=true&apiKey=_aL5f5EmEje0vL6kYr1xOPtgR8e9rGwT')
+my_data <- GET ('https://api.polygon.io/v3/reference/tickers?market=stocks&limit=1000&apiKey=_aL5f5EmEje0vL6kYr1xOPtgR8e9rGwT')
 parsed <- fromJSON(rawToChar(my_data$content))
 options <- parsed$results
 ```
