@@ -1,0 +1,110 @@
+---
+title: "Project 1"
+author: "Kristina Golden"
+date: "2023-06-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Required packages
+```{r message=FALSE}
+library(httr)
+library(jsonlite)
+library(tidyverse)
+API_KEY <- Sys.setenv("API_KEY" =
+                        "_aL5f5EmEje0vL6kYr1xOPtgR8e9rGwT")
+```
+
+##Access API
+
+```{r, ticker}
+#Ticker data that can be filtered.
+get_info <- function(query = "all") {
+  url <- "https://api.polygon.io/v3/reference/tickers"
+  
+  query_list <- list(active = "true", apiKey =
+                       Sys.getenv("API_KEY"))
+  
+  if (query != "all") {
+    query_list$q <- query
+  }
+  
+  my_data <- GET(url, query = query_list)
+  
+  if (http_status(my_data)$category == "Success") {
+    parsed <- fromJSON(rawToChar(my_data$content))
+    results <- as.data.frame(parsed$results)
+    
+    if (nrow(results) > 0) {
+      results <-as.data.frame(sapply(results, toupper))
+      results <- results[-c(9:12)]
+      results <- results %>%
+        filter(ticker == toupper(query) | 
+                 name == toupper(query) |
+                 market == toupper(query) |
+                 locale == toupper(query) |
+                 primary_exchange == toupper(query) |
+                 type == toupper(query) |
+                 active == toupper(query) |
+                 currency_name == toupper(query))
+                 
+    }
+    
+    return(results)
+  } 
+  else {
+    stop("Error retrieving data from the API.")
+  }
+}
+```
+
+```{r, OCLC_1.9.2023}
+#Get the open, high, low, and close (OHLC) for the entire stocks/equities markets for January 9, 2023.
+get_OHLC <- function(query = "all") {
+  url <- "https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/2023-01-09"
+  
+  query_list <- list(adjusted = "true", apiKey =
+                       Sys.getenv("API_KEY"))
+  
+  if (query != "all") {
+    query_list$q <- query
+  }
+  
+  my_data <- GET(url, query = query_list)
+  
+  if (http_status(my_data)$category == "Success") {
+    parsed <- fromJSON(rawToChar(my_data$content))
+    results <- as.data.frame(parsed$results)
+    
+    if (nrow(results) > 0) {
+      results <-as.data.frame(sapply(results, toupper))
+      results <- results[-c(8)]
+      results <- results %>% 
+        rename(Ticker = T,
+               Trading_Volume = v,
+               Volume_Weighted_AvgPrice = vw,
+               Open_Price_01.09.2023 = o,
+               Close_Price_01.09.2023 = c,
+               Highest_Price_01.09.2023 = h,
+               Lowest_Price_01.09.2023 = l,
+               Num_Transactions_01.09.2023 = n)
+      results <- results %>%
+        filter(Ticker == toupper(query))
+    }
+    
+    return(results)
+  } 
+  else {
+    stop("Error retrieving data from the API.")
+  }
+}
+```
+
+```{r, check_api}
+my_data <- GET ('https://api.polygon.io/v3/reference/tickers?active=true&apiKey=_aL5f5EmEje0vL6kYr1xOPtgR8e9rGwT')
+parsed <- fromJSON(rawToChar(my_data$content))
+options <- parsed$results
+```
+
