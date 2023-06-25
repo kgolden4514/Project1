@@ -24,17 +24,164 @@ API_KEY <- Sys.setenv("API_KEY" =
                         "_aL5f5EmEje0vL6kYr1xOPtgR8e9rGwT")
 ```
 
-## Functions
+##Functions
+
 ```{r}
-#Market, locale, primary exchange, type, and currency_name by
-#company
-company <- function(query = "all") {
+#Function for company name
+company <- function(company = "all"){
+  url <- "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers"
+  query_list <- list(apiKey =
+                       Sys.getenv("API_KEY"))
+  my_data <- GET(url, query = query_list)
+  parsed <- fromJSON(rawToChar(my_data$content))
+  options <- as.data.frame(parsed$tickers)
+  options <- options %>% unnest('day')
+      options <- rename(options, 
+                 Day_Open_Price = o, 
+                 Day_High_Price = h,
+                 Day_Low_Price = l,
+                 Day_Close_Price = c,
+                 d1 = v,
+                 d2 = vw)
+      options <- options %>% unnest('prevDay')
+      options <- rename(options, 
+                  Prev_Open_Price = o, 
+                  Prev_High_Price = h,
+                  Prev_Low_Price = l,
+                  Prev_Close_Price = c,
+                  PerChange_Since_Prev =
+                    todaysChangePerc,
+                  ValChange_Sine_Prev = todaysChange,
+                  d3 = v,
+                  d4 = vw)
+      options <- options %>% unnest('min')
+      options <- as_tibble(options[-c(4, 9:18, 23:24)])
+      names <- read.csv("company_names.csv")
+      names <- rename(names, ticker = Symbol,
+                             name = Name)
+      names <- as_tibble(names[-c(3:5)])
+      options <- merge(options, names, by = 'ticker')
+      options <- options[c(1, 12, 2:11)]
+  
+    if (company != "all"){
+    
+    if (toupper(company) %in% options$ticker){
+      options <- options %>%
+        filter(ticker == toupper(company))
+    }
+    
+    else if (toupper(company) %in% options$Name){
+      output <- options %>%
+        filter(Name == toupper(company))
+    }
+    # Otherwise, throw an informative error.
+    else {
+      message <- paste('ERROR: Argument for company was
+                       not found in the ticker or the
+                       name column. Returning all
+                       companies.')
+                       
+    }
+  }
+  # Do nothing if the company value equals "all".
+  else {
+    
+  output <- as.data.frame(options)
+  # Return the output data.frame.
+  return(output)
+  }
+}
+c <- company()
+```
+
+```{r}
+#Function for exchange
+exchange <- function(exchange = "all"){
+  url <- "https://api.polygon.io/v3/reference/tickers?active=true&limit=1000"
+  query_list <- list(apiKey =
+                       Sys.getenv("API_KEY"))
+  my_data <- GET(url, query = query_list)
+  parsed <- fromJSON(rawToChar(my_data$content))
+  options <- as.data.frame(parsed$results)
+  options$name <- toupper(options$name)
+  options$market <- toupper(options$market)
+  options <- options[-c(4, 7:12)]
+  
+    if (exchange != "all"){
+    
+    if (toupper(exchange) %in% options$primary_exchange){
+      options <- options %>%
+        filter(primary_exchange == toupper(exchange))
+    }
+    
+    # Otherwise, throw an informative error.
+    else {
+      message <- paste('ERROR: Argument for exchange was
+                       not found in the exchange column.
+                       Returning all
+                       exchanges')
+                       
+    }
+  }
+  # Do nothing if the company value equals "all".
+  else {
+    
+  output <- as.data.frame(options)
+  # Return the output data.frame.
+  return(output)
+  }
+}
+e <- exchange('xnys')
+```
+
+```{r}
+#Function for type
+type <- function(type = "all"){
+  url <- "https://api.polygon.io/v3/reference/tickers?active=true&limit=1000"
+  query_list <- list(apiKey =
+                       Sys.getenv("API_KEY"))
+  my_data <- GET(url, query = query_list)
+  parsed <- fromJSON(rawToChar(my_data$content))
+  options <- as.data.frame(parsed$results)
+  options$name <- toupper(options$name)
+  options$market <- toupper(options$market)
+  options <- options[-c(4, 7:12)]
+  
+     if (type != "all"){
+    
+    if (toupper(type) %in% options$type){
+      options <- options %>%
+        filter(type == toupper(type))
+    }
+    
+    # Otherwise, throw an informative error.
+    else {
+      message <- paste('ERROR: Argument for company was
+                       not found in the type column. Returning
+                       all types.')
+                       
+    }
+  }
+  # Do nothing if the company value equals "all".
+  else {
+    
+  output <- as.data.frame(options)
+  # Return the output data.frame.
+  return(output)
+  }
+}
+e <- type('UNIT')
+```
+
+```{r}
+#Function for type
+company <- function(company = "all") {
   url <- "https://api.polygon.io/v3/reference/tickers"
   
-  query_list <- list(active = "true", limit = 500, apiKey =
+  query_list <- list(active = "true", limit = 1000, apiKey =
                        Sys.getenv("API_KEY"))
   
-  if (query != "all") {
+  if (company != "all") {
     query_list$q <- query
   }
   
@@ -65,514 +212,26 @@ company_trial_ticker <- company("AAPL")
 company_trial_ticker
 ```
 
+
 ```{r}
-#Market, locale, primary exchange, type, and currency_name by
-#market
-market <- function(query = "all") {
-  url <- "https://api.polygon.io/v3/reference/tickers"
-  
-  query_list <- list(active = "true", limit = 500, apiKey =
-                       Sys.getenv("API_KEY"))
-  
-  if (query != "all") {
-    query_list$q <- query
+bankAPI <- function(func,...){
+  if (func == "company"){
+    output <- company(...)
+  }
+  else if (func == "exchange"){
+    output <- exchange(...)
+  }
+  else if (func == "type"){
+    output <- type(...)
   }
   
-  my_data <- GET(url, query = query_list)
-  
-  if (http_status(my_data)$category == "Success") {
-    parsed <- fromJSON(rawToChar(my_data$content))
-    results <- as.data.frame(parsed$results)
-    
-    if (nrow(results) > 0) {
-      results <-as.data.frame(sapply(results, toupper))
-      results <- results[-c(7, 9:12)]
-      results <- results %>%
-        filter(market == toupper(query))
-    }
-    return(as_tibble(results))
-    
-  } 
   else {
-    stop("Error retrieving data from the API.")
+    stop("ERROR: Argument for func is not valid!")
   }
+  
+  # Return the output from the appropriate function.
+  return(output)
 }
-
-market_trial <- market("stocks")
-market_trial
-```
-
-```{r}
-#Market, locale, primary exchange, type, and currency_name by
-#exchange
-exchange <- function(query = "all") {
-  url <- "https://api.polygon.io/v3/reference/tickers"
-  
-  query_list <- list(active = "true", limit = 500, apiKey =
-                       Sys.getenv("API_KEY"))
-  
-  if (query != "all") {
-    query_list$q <- query
-  }
-  
-  my_data <- GET(url, query = query_list)
-  
-  if (http_status(my_data)$category == "Success") {
-    parsed <- fromJSON(rawToChar(my_data$content))
-    results <- as.data.frame(parsed$results)
-    
-    if (nrow(results) > 0) {
-      results <-as.data.frame(sapply(results, toupper))
-      results <- results[-c(7, 9:12)]
-      results <- results %>%
-        filter(primary_exchange == toupper(query))
-    }
-    return(as_tibble(results))
-    
-  } 
-  else {
-    stop("Error retrieving data from the API.")
-  }
-}
-
-exchange_trial <- exchange("XNYS")
-exchange_trial
-```
-
-```{r}
-#Market, locale, primary exchange, type, and currency_name by
-#type
-type <- function(query = "all") {
-  url <- "https://api.polygon.io/v3/reference/tickers"
-  
-  query_list <- list(active = "true", limit = 500, apiKey =
-                       Sys.getenv("API_KEY"))
-  
-  if (query != "all") {
-    query_list$q <- query
-  }
-  
-  my_data <- GET(url, query = query_list)
-  
-  if (http_status(my_data)$category == "Success") {
-    parsed <- fromJSON(rawToChar(my_data$content))
-    results <- as.data.frame(parsed$results)
-    
-    if (nrow(results) > 0) {
-      results <-as.data.frame(sapply(results, toupper))
-      results <- results[-c(7, 9:12)]
-      results <- results %>%
-        filter(type == toupper(query))
-    }
-    return(as_tibble(results))
-    
-  } 
-  else {
-    stop("Error retrieving data from the API.")
-  }
-}
-
-type_trial <- type("cs")
-type_trial
-```
-
-```{r}
-#Function that will tell you the percent change since previous
-#day that is greater than or equal to your argument (in %) for #the top 20 companies
-gainers <- function(q) {
-  url <- "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/gainers"
-  
-  query_list <- list(apiKey =
-                       Sys.getenv("API_KEY"))
-  
-  my_data <- GET(url, query = query_list)
-  
-  if (http_status(my_data)$category == "Success") {
-    parsed <- fromJSON(rawToChar(my_data$content))
-    options <- as.data.frame(parsed$tickers)
-    
-    
-    if (nrow(options) > 0) {
-      options <- options %>% unnest('day')
-      options <- rename(options, 
-                 Day_Open_Price = o, 
-                 Day_High_Price = h,
-                 Day_Low_Price = l,
-                 Day_Close_Price = c,
-                 d1 = v,
-                 d2 = vw)
-      options <- options %>% unnest('prevDay')
-      options <- rename(options, 
-                  Prev_Open_Price = o, 
-                  Prev_High_Price = h,
-                  Prev_Low_Price = l,
-                  Prev_Close_Price = c,
-                  PerChange_Since_Prev = todaysChangePerc,
-                  ValChange_Sine_Prev = todaysChange,
-                  d3 = v,
-                  d4 = vw)
-      options <- options %>% unnest('min')
-      options <- as_tibble(options[-c(4, 9:18, 23:24)])
-      results <- options %>%
-        filter(PerChange_Since_Prev >= q)
-    }
-    return(as_tibble(results))
-  } 
-  else {
-    stop("Error retrieving data from the API.")
-  }
-}
-
-gainers_trial <- gainers(100)
-gainers_trial
-```
-
-```{r}
-#Function that will tell you the percent change since
-#previous day that is less than or equal to your argument
-#(in %) for #the bottom 20 companies
-losers <- function(q) {
-  url <- "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/losers"
-  
-  query_list <- list(apiKey =
-                       Sys.getenv("API_KEY"))
-  
-  my_data <- GET(url, query = query_list)
-  
-  if (http_status(my_data)$category == "Success") {
-    parsed <- fromJSON(rawToChar(my_data$content))
-    options <- as.data.frame(parsed$tickers)
-    
-    
-    if (nrow(options) > 0) {
-      options <- options %>% unnest('day')
-      options <- rename(options, 
-                 Day_Open_Price = o, 
-                 Day_High_Price = h,
-                 Day_Low_Price = l,
-                 Day_Close_Price = c,
-                 d1 = v,
-                 d2 = vw)
-      options <- options %>% unnest('prevDay')
-      options <- rename(options, 
-                  Prev_Open_Price = o, 
-                  Prev_High_Price = h,
-                  Prev_Low_Price = l,
-                  Prev_Close_Price = c,
-                  PerChange_Since_Prev = todaysChangePerc,
-                  ValChange_Sine_Prev = todaysChange,
-                  d3 = v,
-                  d4 = vw)
-      options <- options %>% unnest('min')
-      options <- as_tibble(options[-c(4, 9:18, 23:24)])
-      results <- options %>%
-        filter(PerChange_Since_Prev <= q)
-    }
-    return(as_tibble(results))
-  } 
-  else {
-    stop("Error retrieving data from the API.")
-  }
-}
-
-losers_trial <- losers(0.5)
-losers_trial
-```
-
-```{r}
-#Function to find daily cost results for all tickers
-all_company <- function(query = 'all') {
-  url <- "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers"
-  
-  query_list <- list(apiKey =
-                       Sys.getenv("API_KEY"))
-  
-  if (query != "all") {
-    query_list$q <- query
-  }
-  
-  my_data <- GET(url, query = query_list)
-  
-  if (http_status(my_data)$category == "Success") {
-    parsed <- fromJSON(rawToChar(my_data$content))
-    options <- as.data.frame(parsed$tickers)
-    
-    
-    if (nrow(options) > 0) {
-      options <- options %>% unnest('day')
-      options <- rename(options, 
-                 Day_Open_Price = o, 
-                 Day_High_Price = h,
-                 Day_Low_Price = l,
-                 Day_Close_Price = c,
-                 d1 = v,
-                 d2 = vw)
-      options <- options %>% unnest('prevDay')
-      options <- rename(options, 
-                  Prev_Open_Price = o, 
-                  Prev_High_Price = h,
-                  Prev_Low_Price = l,
-                  Prev_Close_Price = c,
-                  PerChange_Since_Prev = todaysChangePerc,
-                  ValChange_Sine_Prev = todaysChange,
-                  d3 = v,
-                  d4 = vw)
-      options <- options %>% unnest('min')
-      options <- as_tibble(options[-c(4, 9:18, 23:24)])
-      results <- options %>%
-        filter(ticker == toupper(query))
-    }
-    return(as_tibble(results))
-  } 
-  else {
-    stop("Error retrieving data from the API.")
-  }
-}
-
-all_company_ticker <- all_company('dis')
-all_company_ticker
-```
-
-```{r}
-#Function that will tell you the percent change since previous
-#day that is greater than or equal to your argument (in %) for #all companies
-##Note: This data is cleared at 3:30am EST and gets populated as data is received from the exchanges. This can happen as early as 4am EST.
-all_companies_gt <- function(q) {
-  url <- "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers"
-
-query_list <- list(apiKey =
-                       Sys.getenv("API_KEY"))
-  
-  my_data <- GET(url, query = query_list)
-  
-  if (http_status(my_data)$category == "Success") {
-    parsed <- fromJSON(rawToChar(my_data$content))
-    options <- as.data.frame(parsed$tickers)
-    
-    
-    if (nrow(options) > 0) {
-      options <- options %>% unnest('day')
-      options <- rename(options, 
-                 Day_Open_Price = o, 
-                 Day_High_Price = h,
-                 Day_Low_Price = l,
-                 Day_Close_Price = c,
-                 d1 = v,
-                 d2 = vw)
-      options <- options %>%
-        mutate(across(where(is.integer), as.numeric)) 
-      options <- options %>% unnest('prevDay')
-      options <- rename(options, 
-                  Prev_Open_Price = o, 
-                  Prev_High_Price = h,
-                  Prev_Low_Price = l,
-                  Prev_Close_Price = c,
-                  PerChange_Since_Prev = todaysChangePerc,
-                  ValChange_Sine_Prev = todaysChange,
-                  d3 = v,
-                  d4 = vw)
-      options <- options %>% unnest('min')
-      options <- as_tibble(options[-c(4, 9:18, 23:24)])
-      results <- options %>%
-        filter(PerChange_Since_Prev >= q)
-    }
-    return(as_tibble(results))
-  } 
-  else {
-    stop("Error retrieving data from the API.")
-  }
-}
-
-all_companies_gt_trial <- all_companies_gt(0)
-all_companies_gt_trial
-```
-
-```{r}
-#Function that will tell you the percent change since
-#previous day that is less than or equal to your argument
-#(in %) for all companies
-#Note: This data is cleared at 3:30am EST and gets populated as data is received from the exchanges. This can happen as early as 4am EST.
-all_companies_lt <- function(q) {
-  url <- "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers"
-  
-  query_list <- list(apiKey =
-                       Sys.getenv("API_KEY"))
-  
-  my_data <- GET(url, query = query_list)
-  
-  if (http_status(my_data)$category == "Success") {
-    parsed <- fromJSON(rawToChar(my_data$content))
-    options <- as.data.frame(parsed$tickers)
-    
-    
-    if (nrow(options) > 0) {
-      options <- options %>% unnest('day')
-      options <- rename(options, 
-                 Day_Open_Price = o, 
-                 Day_High_Price = h,
-                 Day_Low_Price = l,
-                 Day_Close_Price = c,
-                 d1 = v,
-                 d2 = vw)
-      options <- options %>%
-        mutate(across(where(is.integer), as.numeric))
-      options <- options %>% unnest('prevDay')
-      options <- rename(options, 
-                  Prev_Open_Price = o, 
-                  Prev_High_Price = h,
-                  Prev_Low_Price = l,
-                  Prev_Close_Price = c,
-                  PerChange_Since_Prev = todaysChangePerc,
-                  ValChange_Sine_Prev = todaysChange,
-                  d3 = v,
-                  d4 = vw)
-      options <- options %>% unnest('min')
-      options <- as_tibble(options[-c(4, 9:18, 23:24)])
-      results <- options %>%
-        filter(PerChange_Since_Prev <= q)
-    }
-    return(as_tibble(results))
-  } 
-  else {
-    stop("Error retrieving data from the API.")
-  }
-}
-
-all_companies_lt_trial <- all_companies_lt(0)
-all_companies_lt_trial
-```
-
-```{r}
-#Contingency table for stock exchange
-stocks <- market('stocks')
-stocks_exchange <-
-  addmargins(table(stocks$primary_exchange))
-names(dimnames(stocks_exchange)) <- c("Stocks By Exchange")
-stocks_exchange
-
-#Contingency table for stock type
-stocks_type <-
-  addmargins(table(stocks$type))
-names(dimnames(stocks_type)) <- c("Stocks By Type")
-stocks_type
-
-#Contingency table for stock exchange and type
-stocks_ex_type <-
-  addmargins(table(stocks$primary_exchange,
-                   stocks$type))
-names(dimnames(stocks_ex_type)) <- c("Stock Type", "Stock Exchange")
-stocks_ex_type
-
-#Contingency table for otc type
-otc <- market('otc')
-otc_type <-
-  addmargins(table(otc$type))
-names(dimnames(otc_type)) <- c("OTC By Type")
-otc_type
-```
-```{r}
-#Create data frame for all tickers that had a percent change from the previous day. Tickers with a percent change of 0 are not included.
-#Note: This data is cleared at 3:30am EST and gets populated as data is received from the exchanges. This can happen as early as 4am EST.
-change <- rbind(all_companies_gt(0), all_companies_lt(0))
-
-#Calculate averages
-change <- mutate(change, 
-                 AvgPerChange_Since_Prev = mean(PerChange_Since_Prev),
-                 AvgValChange_Since_Prev = mean(ValChange_Sine_Prev),
-                 AvgDay_Open_Price = mean(Day_Open_Price),
-                 AvgDay_High_Price = mean(Day_High_Price),
-                 AvgDay_Low_Price = mean(Day_Low_Price),
-                 AvgDay_Close_Price = mean(Day_Close_Price),
-                 AvgPrev_Open_Price = mean(Prev_Open_Price),
-                 AvgPrev_High_Price = mean(Prev_High_Price),
-                 AvgPrev_Low_Price = mean(Prev_Low_Price),
-                 AvgPrev_Close_Price = mean(Prev_Close_Price))
-change <- change[, c(1, 2, 12, 3, 13, 4, 14, 5, 15, 6, 16, 
-                     7, 17, 8, 18, 9, 19, 10, 20, 11, 21)]
-change
-```
-```{r}
-#Barchart for type of stocks
-market_stocks <- market("stocks")
-market_stocks <-  market_stocks %>% drop_na(primary_exchange)
-g <- ggplot(market_stocks, aes(x = type))
-g <- g + geom_bar(aes(fill = as.factor(primary_exchange))) +
-    labs(x = "Exchange", title = "Bar Plot of Type for
-         Stocks") + 
-    scale_x_discrete(guide = guide_axis(angle = 45)) +
-    scale_fill_discrete(name = 'Exchange')
-g
-```
-
-```{r}
-#Histogram
-# Basic histogram for percent change since previous day for [0, 100]
-between <- all_companies_gt(0)
-between <- subset(between, PerChange_Since_Prev >= 0 & 
-                    PerChange_Since_Prev <= 100)
-ggplot(between, aes(x=PerChange_Since_Prev, y =
-                       after_stat(density))) +
-  geom_histogram(bins = 200, color = '#140659', fill =
-                   '#140659') + 
-  labs(x = "Percent Change", title = "Histogram for Percent
-       change [0%, 100%]") +
-  geom_density(color = '#FF1694') +
-  theme(plot.title=element_text(hjust=0.5))
-```
-
-```{r}
-#Histogram
-# Basic histogram for percent change since previous day for [-100, 0]
-between <- all_companies_lt(0)
-between <- subset(between, PerChange_Since_Prev <= 0 & 
-                    PerChange_Since_Prev >= -100)
-ggplot(between, aes(x=PerChange_Since_Prev, y =
-                       after_stat(density))) +
-  geom_histogram(bins = 200, color = '#140659', fill =
-                   '#140659') + 
-  labs(x = "Percent Change", title = "Histogram for Percent
-       change [-100%, 0%]") +
-  geom_density(color = '#FF1694') +
-  theme(plot.title=element_text(hjust=0.5))
-```
-
-
-```{r, warning = FALSE}
-#Boxplot
-# Basic boxplot for Day Low Price [-100, 60]
-less <- all_companies_lt(0)
-greater <- all_companies_gt(0.000000000000000009)
-combined <- rbind.data.frame(less, greater)
-
-combined <- subset(combined, Day_Low_Price >= -100 & 
-                    Day_Low_Price <= 60)
-
-#boxplot.stats(combined$Day_Low_Price)$out
-
-ggplot(combined, aes(x = combined$Day_Low_Price)) +
-  geom_boxplot( fill = '#8806ce') +
-  labs(x = "Lowest Price for the Day", title = 'Boxplot for
-     Lowest Price for the Day [$-100, $60]') +
-  theme(plot.title=element_text(hjust=0.5))
-  
-```
-
-```{r}
-#Scatterplot for companies with a percent growth greater than
-#50%
-greater <- all_companies_gt(50)
-ggplot(greater, aes(x=Day_Low_Price, y=Day_High_Price)) +
-  geom_point(size = 2,
-             position=position_jitter(width=3,height=2), color
-             = '#8b0a50') +
-  xlab('Lowest Price for the Day') +
-  ylab('Highest Price for the Day') +
-  labs(title = 'Scatterplot for Companies with a % Growth
-       Greater than 50%', 
-       subtitle = 'x = Lowest Price for the Day
-       y = Highest Price for  the Day') +
-  theme(plot.title=element_text(hjust=0.5)) +
-  theme(plot.subtitle=element_text(hjust=0.5))
-
+k <- bankAPI('type')
 ```
 

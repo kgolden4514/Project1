@@ -1,0 +1,174 @@
+---
+title: "keep safe"
+author: "Kristina Golden"
+date: "2023-06-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# #Function to find daily cost results for all tickers
+# all_company <- function(query = 'all') {
+#   url <- "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers"
+#   
+#   query_list <- list(apiKey =
+#                        Sys.getenv("API_KEY"))
+#   
+#   if (query != "all") {
+#     query_list$q <- query
+#   }
+#   
+#   my_data <- GET(url, query = query_list)
+#   
+#   if (http_status(my_data)$category == "Success") {
+#     parsed <- fromJSON(rawToChar(my_data$content))
+#     options <- as.data.frame(parsed$tickers)
+#     
+#     
+#     if (nrow(options) > 0) {
+#       options <- options %>% unnest('day')
+#       options <- rename(options, 
+#                  Day_Open_Price = o, 
+#                  Day_High_Price = h,
+#                  Day_Low_Price = l,
+#                  Day_Close_Price = c,
+#                  d1 = v,
+#                  d2 = vw)
+#       options <- options %>% unnest('prevDay')
+#       options <- rename(options, 
+#                   Prev_Open_Price = o, 
+#                   Prev_High_Price = h,
+#                   Prev_Low_Price = l,
+#                   Prev_Close_Price = c,
+#                   PerChange_Since_Prev = todaysChangePerc,
+#                   ValChange_Sine_Prev = todaysChange,
+#                   d3 = v,
+#                   d4 = vw)
+#       options <- options %>% unnest('min')
+#       options <- as_tibble(options[-c(4, 9:18, 23:24)])
+#       results <- options %>%
+#         filter(ticker == toupper(query))
+#     }
+#     return(as_tibble(results))
+#   } 
+#   else {
+#     stop("Error retrieving data from the API.")
+#   }
+# }
+# 
+# all_company_ticker <- all_company('dis')
+# all_company_ticker
+```
+
+```{r}
+#Function that will tell you the percent change since previous
+#day that is greater than or equal to your argument (in %) for #all companies
+##Note: This data is cleared at 3:30am EST and gets populated as data is received from the exchanges. This can happen as early as 4am EST.
+# all_companies_gt <- function(q) {
+#   url <- "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers"
+# 
+# query_list <- list(apiKey =
+#                        Sys.getenv("API_KEY"))
+#   
+#   my_data <- GET(url, query = query_list)
+#   
+#   if (http_status(my_data)$category == "Success") {
+#     parsed <- fromJSON(rawToChar(my_data$content))
+#     options <- as.data.frame(parsed$tickers)
+#     
+#     
+#     if (nrow(options) > 0) {
+#       options <- options %>% unnest('day')
+#       options <- rename(options, 
+#                  Day_Open_Price = o, 
+#                  Day_High_Price = h,
+#                  Day_Low_Price = l,
+#                  Day_Close_Price = c,
+#                  d1 = v,
+#                  d2 = vw)
+#       options <- options %>%
+#         mutate(across(where(is.integer), as.numeric)) 
+#       options <- options %>% unnest('prevDay')
+#       options <- rename(options, 
+#                   Prev_Open_Price = o, 
+#                   Prev_High_Price = h,
+#                   Prev_Low_Price = l,
+#                   Prev_Close_Price = c,
+#                   PerChange_Since_Prev = todaysChangePerc,
+#                   ValChange_Sine_Prev = todaysChange,
+#                   d3 = v,
+#                   d4 = vw)
+#       options <- options %>% unnest('min')
+#       options <- as_tibble(options[-c(4, 9:18, 23:24)])
+#       results <- options %>%
+#         filter(PerChange_Since_Prev >= q)
+#     }
+#     return(as_tibble(results))
+#   } 
+#   else {
+#     stop("Error retrieving data from the API.")
+#   }
+# }
+# 
+# all_companies_gt_trial <- all_companies_gt(0)
+# all_companies_gt_trial
+```
+
+```{r}
+#Function that will tell you the percent change since
+#previous day that is less than or equal to your argument
+#(in %) for all companies
+#Note: This data is cleared at 3:30am EST and gets populated as data is received from the exchanges. This can happen as early as 4am EST.
+# all_companies_lt <- function(q) {
+#   url <- "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers"
+#   
+#   query_list <- list(apiKey =
+#                        Sys.getenv("API_KEY"))
+#   
+#   my_data <- GET(url, query = query_list)
+#   
+#   if (http_status(my_data)$category == "Success") {
+#     parsed <- fromJSON(rawToChar(my_data$content))
+#     options <- as.data.frame(parsed$tickers)
+#     
+#     
+#     if (nrow(options) > 0) {
+#       options <- options %>% unnest('day')
+#       options <- rename(options, 
+#                  Day_Open_Price = o, 
+#                  Day_High_Price = h,
+#                  Day_Low_Price = l,
+#                  Day_Close_Price = c,
+#                  d1 = v,
+#                  d2 = vw)
+#       options <- options %>%
+#         mutate(across(where(is.integer), as.numeric))
+#       options <- options %>% unnest('prevDay')
+#       options <- rename(options, 
+#                   Prev_Open_Price = o, 
+#                   Prev_High_Price = h,
+#                   Prev_Low_Price = l,
+#                   Prev_Close_Price = c,
+#                   PerChange_Since_Prev = todaysChangePerc,
+#                   ValChange_Sine_Prev = todaysChange,
+#                   d3 = v,
+#                   d4 = vw)
+#       options <- options %>% unnest('min')
+#       options <- as_tibble(options[-c(4, 9:18, 23:24)])
+#       results <- options %>%
+#         filter(PerChange_Since_Prev <= q)
+#     }
+#     return(as_tibble(results))
+#   } 
+#   else {
+#     stop("Error retrieving data from the API.")
+#   }
+# }
+# 
+# all_companies_lt_trial <- all_companies_lt(0)
+# all_companies_lt_trial
+```
+
