@@ -1,4 +1,4 @@
-title: "Project 1"
+title: "Kristina Golden, MS Statistics Student, NCSU"
 author: "Kristina Golden"
 description: "Blog for ST 558" # This will show up in places like twitter, linkedin, etc, if you share your sites url as a post.
 
@@ -11,7 +11,7 @@ github_username: "kgolden4514"
 #########################################################################################
 ######### Nothing below needs to be changed (unless you know what you're doing) #########
 #########################################################################################
-remote_theme: pages-themes/dinky@v0.2.0
+theme: "minima"
 
 rss: rss
 
@@ -22,7 +22,6 @@ kramdown:
 plugins:
   - jekyll-feed
   - jekyll-sitemap
-  - jekyll-remote-theme # add this line to the plugins list if you already have one
 
 titles_from_headings:
   strip_title: true
