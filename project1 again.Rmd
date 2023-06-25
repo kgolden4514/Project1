@@ -28,7 +28,7 @@ API_KEY <- Sys.setenv("API_KEY" =
 
 ```{r}
 #Function for company name
-company <- function(company = "all"){
+company_quan <- function(company = "all"){
   url <- "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers"
   query_list <- list(apiKey =
                        Sys.getenv("API_KEY"))
@@ -91,7 +91,7 @@ company <- function(company = "all"){
   return(output)
   }
 }
-c <- company()
+c <- company_quan()
 ```
 
 ```{r}
@@ -175,7 +175,7 @@ e <- type('UNIT')
 
 ```{r}
 #Function for type
-company <- function(company = "all") {
+company_cat <- function(company = "all") {
   url <- "https://api.polygon.io/v3/reference/tickers"
   
   query_list <- list(active = "true", limit = 1000, apiKey =
@@ -205,18 +205,14 @@ company <- function(company = "all") {
     stop("Error retrieving data from the API.")
   }
 }
-
-company_trial_name <- company("AGILENT TECHNOLOGIES INC.")
-company_trial_name 
-company_trial_ticker <- company("AAPL")
-company_trial_ticker
+c <- company_cat('dis')
 ```
 
 
 ```{r}
 bankAPI <- function(func,...){
-  if (func == "company"){
-    output <- company(...)
+  if (func == "company_quan"){
+    output <- company_quan(...)
   }
   else if (func == "exchange"){
     output <- exchange(...)

@@ -3,9 +3,9 @@ title: "Project 1"
 author: "Kristina Golden"
 date: "2023-06-23"
 output: 
-  html_document:
+  github_document:
     toc: true
-    toc_float: true
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE, warning=FALSE}
@@ -20,6 +20,7 @@ My functions will use a variety of arguments to get differing return data. All d
 
 # Required packages
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(rmarkdown)
 library(httr)
 library(jsonlite)
 library(tidyverse)
@@ -48,6 +49,8 @@ The `company_quan` function allows us to query the API by ticker symbol or compa
 #Function for company name quantitative
 #DONT CHANGE THIS ONE
 company_quan <- function(company = "all"){
+  getwd()
+  setwd('C:/Users/kmada/OneDrive - Onslow County Schools/3. ST 558/6a. Projects/Project1')
   url <- "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers"
   query_list <- list(apiKey =
                        Sys.getenv("API_KEY"))
