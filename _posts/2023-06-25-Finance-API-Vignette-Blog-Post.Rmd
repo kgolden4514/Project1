@@ -1,0 +1,33 @@
+---
+title: "2023-06-25-Finance-API-Vignette-Blog-Post"
+author: "Kristina Golden"
+date: "2023-06-25"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this blog post I will be reflecting what I went through for this project.
+
+# what you did in the project and any interesting findings  
+
+I found out that I know very little about stocks and trading. I did not know that there were options, stocks, and crypto. I did not know that I did not know that there were units, cds, and funds. I also did not know that there are different stock exchanges. I did not find any findings super interesting except that some stocks had major percent changes in price from one day to the next. Sometimes the major percent changes were positive and other times the major percent changes were negative. I certainly wouldn't want to be a part of the negative percent changes. I was interested in the example API. I love hockey! I am a big Carolina Hurricanes fan, and I would have loved to learn how to query APIs with this data!
+
+
+# What was the most difficult part of the logic and programming for you?  
+
+Unfortunately, I am still a trial and error programmer. This makes programming for me take a really long time. It also makes tests on programming language really difficult for me. There are so many functions to remember and the syntax has to be exactly so. I am very invested in becoming better at this, but it is not something that is coming easy to me. I am thinking it is because we are learning so many functions consistently. If I were to do research or an internship where I used the same functions consistently, I might become better at those functions used often. Instead I am learning the arguments, usefulness, and syntax of a function and then moving right on. I am hopeful that along with this class, that my internship I am doing this summer will help me get better at coding without having to look up functions, arguments, and syntax so often.
+
+# What would you do differently in approaching a similar project in the future?  
+
+I am not sure what I would do differently in approaching a similar project in the future. I worked really hard on this project. I have spent many, many, many hours. Getting quicker with coding is definitely a goal of mine. 
+
+# Links to github pages and github pages repo  
+[Project 1 Github Page](https://kgolden4514.github.io/Project1/Finance-API-Vignette.html) 
+
+[Project 1 Github Repo](https://github.com/kgolden4514/Project1) 
