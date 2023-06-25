@@ -966,7 +966,7 @@ g <- g + geom_bar(aes(fill = as.factor(primary_exchange))) +
 g
 ```
 
-![](C:\Users\kmada\ONEDRI~2\3EFC5~1.ST5\6AC7E9~1.PRO\Project1_INCLU~1\README~1/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](C:\Users\kmada\OneDrive%20-%20Onslow%20County%20Schools\3.%20ST%20558\6a.%20Projects\Project1_posts\2023-06-25-Finance-API-Vignette_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 I quickly see that CS is traded mainly on the XNYS and XNAS exchanges. I
 can also see the only type the ARCX trades is the ETF.
 
@@ -1005,7 +1005,7 @@ g <- ggplot(fin_comb, aes(Day_Low_Price,
 g
 ```
 
-![](C:\Users\kmada\ONEDRI~2\3EFC5~1.ST5\6AC7E9~1.PRO\Project1_INCLU~1\README~1/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](C:\Users\kmada\OneDrive%20-%20Onslow%20County%20Schools\3.%20ST%20558\6a.%20Projects\Project1_posts\2023-06-25-Finance-API-Vignette_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 This histogram shows that both the day low price for XNAS and XNYS are
 skewed to the right. I can also see that XNAS has a higher density of
 the lower day low price.
@@ -1042,7 +1042,7 @@ g <- ggplot(fin_comb, aes(PerChange_Since_Prev,
 g
 ```
 
-![](C:\Users\kmada\ONEDRI~2\3EFC5~1.ST5\6AC7E9~1.PRO\Project1_INCLU~1\README~1/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+![](C:\Users\kmada\OneDrive%20-%20Onslow%20County%20Schools\3.%20ST%20558\6a.%20Projects\Project1_posts\2023-06-25-Finance-API-Vignette_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 I can quickly see that the ETF has a much smaller variation than the CS.
 
 To compare day high price between exchanges, I will use a boxplot. I
@@ -1072,7 +1072,7 @@ g <- ggplot(fin_comb,
 g
 ```
 
-![](C:\Users\kmada\ONEDRI~2\3EFC5~1.ST5\6AC7E9~1.PRO\Project1_INCLU~1\README~1/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+![](C:\Users\kmada\OneDrive%20-%20Onslow%20County%20Schools\3.%20ST%20558\6a.%20Projects\Project1_posts\2023-06-25-Finance-API-Vignette_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 I can see that both exchanges have majority of their day high prices at
 relatively low values, but they both have several upper outliers, with
 XNAS being the higher of the two. XYS has a larger IQR than XNAS.
@@ -1099,7 +1099,7 @@ ggplot(fin_com, aes(x=Day_Low_Price, y=Day_High_Price)) +
   theme(plot.title=element_text(hjust=0.5)) 
 ```
 
-![](C:\Users\kmada\ONEDRI~2\3EFC5~1.ST5\6AC7E9~1.PRO\Project1_INCLU~1\README~1/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+![](C:\Users\kmada\OneDrive%20-%20Onslow%20County%20Schools\3.%20ST%20558\6a.%20Projects\Project1_posts\2023-06-25-Finance-API-Vignette_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
 My suspicians have been visually confirmed.
 
 I would like to summarize the day open price by type. I will do this
