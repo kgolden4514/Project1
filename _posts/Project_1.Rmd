@@ -5,6 +5,7 @@ date: "2023-06-23"
 ouput: 
   html_document:
     toc: true
+    toc_float: true
 ---
 
 ```{r setup, include=FALSE, warning=FALSE}
@@ -48,6 +49,7 @@ The `company_quan` function allows us to query the API by ticker symbol or compa
 #DONT CHANGE THIS ONE
 company_quan <- function(company = "all"){
   url <- "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers"
+  setwd("C:/Users/kmada/OneDrive - Onslow County Schools/3. ST 558/6a. Projects/Project1")
   query_list <- list(apiKey =
                        Sys.getenv("API_KEY"))
   my_data <- GET(url, query = query_list)
